@@ -25,6 +25,15 @@ const rest = new REST({ version: '10' }).setToken(discordConf.token);
     printLog(`Started refreshing ${commands.length} global application (/) commands...`);
     await rest.put(Routes.applicationCommands(discordConf.clientId), { body: commands });
     printLog(`✅ Successfully reloaded ${commands.length} global command(s).`);
+    
+    const existing = await rest.get(Routes.applicationCommands(discordConf.clientId));
+    for (const cmd of existing) {
+      if (!commands.find(c => c.name === cmd.name)) {
+        printLog(`🗑️ Deleting stale command: ${cmd.name}`);
+        await rest.delete(Routes.applicationCommand(discordConf.clientId, cmd.id));
+      }
+    }
+
   } catch (error) {
     console.error('❌ Deployment failed:', error);
   }

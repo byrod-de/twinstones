@@ -12,8 +12,8 @@ function rollDie(sides) {
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('dhroll')
-        .setDescription('Roll for Hope and Fear, the Daggerheart way!')
+        .setName('dh-roll')
+        .setDescription('Roll for Hope and Fear, the Daggerheart™ way!')
         .addIntegerOption(option =>
             option.setName('modifier')
                 .setDescription('Add a modifier to the total (default: 0)')
@@ -67,31 +67,37 @@ module.exports = {
 
         let tone = '';
         if (hope === fear) {
-            tone = '**Critical Success!** :purple_heart: ';
+            tone = ' [**Critical Success!**] :light_blue_heart: ';
             embedColor = colours.critical || '#8A2BE2';
         } else if (hope > fear) {
-            tone = '**With Hope** :yellow_heart: \n-# You gain 1 Hope.';
+            tone =  ' [**With Hope**] :yellow_heart: \n-# You gain 1 Hope.';
             embedColor = colours.hope || '#8A2BE2';
         } else {
-            tone = '**With Fear** :purple_circle: \n-# GM gains 1 Fear.';
-            embedColor = colours.fear || '#8A2BE2   ';
+            tone = ' [**With Fear**] :purple_circle: \n-# GM gains 1 Fear.';
+            embedColor = colours.fear || '#8A2BE2';
         }
 
         const embed = new EmbedBuilder()
             .setColor(embedColor)
-            .setTitle('Daggerheart Roll')
+            .setTitle('Two D12 Roll')
             .setDescription(
-                `**Hope d12:** ${hope}\n` +
-                `**Fear d12:** ${fear}\n` +
-                `**Modifier:** ${modifier}\n` +
+                `**Hope d12:** \`${hope.toString().padStart(2, ' ')}\` | ` +
+                `**Fear d12:** \`${fear.toString().padStart(2, ' ')}\`\n` +
+                (modifier ? `-# **Modifier:** ${modifier}\n` : '') +
                 (bonusText ? `${bonusText}\n` : '') +
-                `### **Final Total:** ${finalTotal}\n` +
+                `\n**Final Total:** ${finalTotal} ` +
                 `${tone}`
             )
             .setTimestamp()
-            .setFooter({ text: 'inspired by Daggerheart' });
+            .setFooter({ text: 'inspired by Daggerheart™' });
+                
+        let executionInfo = 'in a DM channel.';
 
-        printLog(`Command /dhroll executed by ${interaction.user.username} [${interaction.user.id}] in ${interaction.guild.name} [${interaction.guild.id}]`);
+        if (interaction.guild) {
+            executionInfo = `in ${interaction.guild.name} [${interaction.guild.id}].`;
+        }
+
+        printLog(`Command /${interaction.commandName} executed by ${interaction.user.username} [${interaction.user.id}] ${executionInfo}`);
         printLog(`>>> Modifier: ${modifier}, Bonus: ${bonus}, Ally Dice Count: ${allyDiceCount}, Show: ${show}`);
 
         await interaction.reply({ embeds: [embed], flags: !show ? EPHEMERAL : 0 });
