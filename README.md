@@ -1,5 +1,5 @@
 # twinstones
-A simple dice roller for Daggerheart™
+A simple Discord bot as dice roller for Daggerheart™
 
 *Disclaimer*:
 
