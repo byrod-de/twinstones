@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
-const { printLog } = require('../helper/misc');
+const { logCommandExecution } = require('../helper/misc');
 const colours = require('../conf/colours.json');
 
 const EPHEMERAL = 1 << 6;
@@ -158,14 +158,7 @@ module.exports = {
             .setTimestamp()
             .setFooter({ text: 'inspired by DnD' })
 
-        let executionInfo = 'in a DM channel.';
-
-        if (interaction.guild) {
-            executionInfo = `in ${interaction.guild.name} [${interaction.guild.id}].`;
-        }
-
-        printLog(`Command /${interaction.commandName} executed by ${interaction.user.username} [${interaction.user.id}] ${executionInfo}`);
-        printLog(`>>> Dice: ${diceString}, Bonus: ${bonus}, Show: ${show}`);
+        logCommandExecution(interaction);
 
         await interaction.reply({ embeds: [rolliesEmbed], flags: !show ? EPHEMERAL : 0 });
     }

@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 const colours = require('../conf/colours.json');
-const { printLog } = require('../helper/misc');
+const { logCommandExecution } = require('../helper/misc');
 
 let embedColor = colours.default || '#8A2BE2';
 const EPHEMERAL = 1 << 6;
@@ -97,8 +97,7 @@ module.exports = {
             executionInfo = `in ${interaction.guild.name} [${interaction.guild.id}].`;
         }
 
-        printLog(`Command /${interaction.commandName} executed by ${interaction.user.username} [${interaction.user.id}] ${executionInfo}`);
-        printLog(`>>> Modifier: ${modifier}, Bonus: ${bonus}, Ally Dice Count: ${allyDiceCount}, Show: ${show}`);
+        logCommandExecution(interaction);
 
         await interaction.reply({ embeds: [embed], flags: !show ? EPHEMERAL : 0 });
     }

@@ -14,4 +14,10 @@ function printLog(logtext) {
     return message;
 }
 
-module.exports = { printLog };
+function logCommandExecution(interaction) {
+    const shortUser = `${interaction.user.username}${interaction.user.discriminator ? `#${interaction.user.discriminator}` : ''}`;
+    const guildenId = interaction.guild ? interaction.guild.id : 'DM';
+    printLog(`Command /${interaction.commandName} executed by ${shortUser}: ${guildenId}`);
+}
+
+module.exports = { printLog, logCommandExecution };
