@@ -67,7 +67,7 @@ module.exports = {
 
         let tone = '';
         if (hope === fear) {
-            tone = ' [**Critical Success!**] :light_blue_heart: ';
+            tone = ' [**Critical Success!**] :light_blue_heart: \n-# You gain 1 Hope.\n-# You can clear 1 Stress.';
             embedColor = colours.critical || '#8A2BE2';
         } else if (hope > fear) {
             tone =  ' [**With Hope**] :yellow_heart: \n-# You gain 1 Hope.';
