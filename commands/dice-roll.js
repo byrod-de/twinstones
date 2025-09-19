@@ -1,34 +1,30 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
-const { logCommandExecution } = require('../helper/misc');
-const colours = require('../conf/colours.json');
-
-const EPHEMERAL = 1 << 6;
+const { logCommandExecution, getColours, hideEmbed, rollDie, rollDice } = require('../helper/misc');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('dice-roll')
-        .setDescription('Roll dice and generate a result based on the dice value. Supports XdY format.')
+        .setDescription('Roll dice. Supports XdY (e.g., 3d6) and "coin".')
 
         .addStringOption(option =>
             option.setName('dice')
-                .setDescription('(optional): Specifies the dice format in the format XdY. Defaults to 1d20.')
+                .setDescription('(optional): Dice format in the format XdY, or "coin" (default: 1d20).')
                 .setRequired(false))
 
         .addStringOption(option =>
             option.setName('bonus')
-                .setDescription('Choose D20 roll bonus')
+                .setDescription('(optional): D20 roll bonus (ignored if rolling multiple dice).')
                 .setRequired(false)
                 .addChoices(
                     { name: 'Advantage', value: 'advantage' },
                     { name: 'Disadvantage', value: 'disadvantage' },
                 )
         )
-
         .addBooleanOption(option =>
             option.setName('show')
                 .setRequired(false)
-                .setDescription('(optional): Determines whether the response should be shown or not. Defaults to true.')),
+                .setDescription('(optional): Shows the result (default: true).')),
 
     /**
      * Asynchronously executes the interaction by rolling a dice and generating a result based on the dice value. 
@@ -37,62 +33,63 @@ module.exports = {
      * @return {Promise<void>} a promise that resolves when the interaction is executed
      */
     async execute(interaction) {
-        let embedColor = colours.default || '#8A2BE2';
+        let embedColor = getColours('default');
 
-        let diceString = interaction.options.getString('dice') ?? '1d20';
+        const rawDiceString = interaction.options.getString('dice');
+        let diceString = (rawDiceString ?? '1d20').trim().toLowerCase();
+
         const show = interaction.options.getBoolean('show') ?? true;
         const bonus = interaction.options.getString('bonus') ?? 'none';
 
+        //tranfer coin to 1d2 for easier processing
+        if (diceString === 'coin') {
+            diceString = '1d2';
+        }
+
         let [numDice, numSides] = diceString.split('d').map(Number);
 
-
-        if (isNaN(numDice) || isNaN(numSides) || numSides === 0) {
-            embedColor = colours.error || '#FF4C4C';
+        if (!Number.isInteger(numDice) || !Number.isInteger(numSides) || numSides <= 0) {
+            embedColor = getColours('error') || '#FF4C4C';
 
             const errorEmbed = new EmbedBuilder()
                 .setColor(embedColor)
                 .setTitle('Invalid dice format')
-                .setDescription('Please use the format `XdY`, where `X` is the number of dice and `Y` is the number of sides.')
-            await interaction.reply({ embeds: [errorEmbed], flags: EPHEMERAL });
+                .setDescription('Please use the format `XdY`, where `X` is the number of dice and `Y` is the number of sides (e.g., 3d6), or `coin`.')
+            await interaction.reply({ embeds: [errorEmbed], flags: hideEmbed(true) });
             return;
         }
 
-        const allowedDice = ['d2', 'd4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100'];
+        const allowedDice = ['d2', 'd4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100', 'coin'];
 
-        if (!allowedDice.includes('d' + numSides)) {
-            embedColor = colours.error || '#FF4C4C';
+        if (!allowedDice.includes('d' + numSides) && !(numSides === 2 && numDice === 1)) {
+            embedColor = getColours('error') || '#FF4C4C';
 
             const errorEmbed = new EmbedBuilder()
                 .setColor(embedColor)
                 .setTitle('Invalid dice size')
                 .setDescription(`Please use one of the following dice sizes: \`${allowedDice.join('`, `')}\``);
-            await interaction.reply({ embeds: [errorEmbed], flags: EPHEMERAL });
+            await interaction.reply({ embeds: [errorEmbed], flags: hideEmbed(true) });
             return;
         }
 
-        if (numDice > 1 && numSides === 20) {
-            embedColor = colours.error || '#FF4C4C';
+        if (numDice > 1 && numSides === 20 && bonus !== 'none') {
+            embedColor = getColours('error') || '#FF4C4C';
             const errorEmbed = new EmbedBuilder()
                 .setColor(embedColor)
                 .setTitle('Invalid dice combination')
-                .setDescription('You cannot roll multiple D20s at once. Please use a single D20, or choose advantage or disadvantage.');
-            await interaction.reply({ embeds: [errorEmbed], flags: EPHEMERAL });
+                .setDescription('You cannot roll multiple D20s with a bonus. Please use a single D20 and choose `advantage` or `disadvantage`.');
+            await interaction.reply({ embeds: [errorEmbed], flags: hideEmbed(true) });
             return;
         }
 
-        if (numDice === 0) {
+        if (numDice <= 0) {
             numDice = 1;
         }
 
-        let rolls = [];
-        let total = 0;
-        let value = '';
+        let rolls = rollDice(numDice, numSides);
+        let total = rolls.reduce((acc, val) => acc + val, 0);
 
-        for (let i = 0; i < numDice; i++) {
-            const roll = Math.floor(Math.random() * numSides) + 1;
-            rolls.push(roll);
-            total += roll;
-        }
+        let value = '';
 
         const rollsString = rolls.join(', ');
 
@@ -104,46 +101,45 @@ module.exports = {
                     value = 'Result of flipping a coin: **Tails**';
                 }
             } else {
-                value = `Result of rolling a D${numSides}, Total: **${total}**`;
+                value = `Result of rolling a d${numSides}\n### Total: **${total}**`;
             }
         } else {
-            value = `Result: ${numDice}d${numSides} (${rollsString}), Total: **${total}**`;
+            value = `Result: ${numDice}d${numSides} (${rollsString})\n### Total: **${total}**`;
         }
 
-        let title = 'Roll Result for ' + diceString;
-        let finalResult = rolls[0];
+        let title = 'Roll Result for ' + (rawDiceString ?? '1d20').trim();
+        let finalResult = '';
+        let firstRoll = rolls[0];
         let secondRoll = null;
 
         if (numSides === 20 && numDice === 1) {
             if (bonus === 'advantage' || bonus === 'disadvantage') {
-                secondRoll = Math.floor(Math.random() * 20) + 1;
+                secondRoll = rollDice(1, 20)[0];
                 rolls.push(secondRoll);
 
                 if (bonus === 'advantage') {
-                    finalResult = Math.max(rolls[0], secondRoll);
+                    finalResult = Math.max(firstRoll, secondRoll);
                     title = 'Roll Result for d20';
                 } else {
-                    finalResult = Math.min(rolls[0], secondRoll);
+                    finalResult = Math.min(firstRoll, secondRoll);
                     title = 'Roll Result for d20';
                 }
 
-                value = `Result: (d20 > ${rolls[0]}, ${secondRoll}), Total: **${finalResult}**`;
+                value = `Result: (d20 > ${rolls[0]}, ${secondRoll})\n### Total: **${finalResult}**`;
             } else {
                 finalResult = rolls[0];
                 title = 'Roll Result for 1d20';
-                value = `Result: d20, Total: **${finalResult}**`;
+                value = `Result: d20\n### Total: **${finalResult}**`;
             }
 
             if (finalResult === 20) {
                 value += '\n\n:fire: Natural f*ing 20!';
                 title = 'Critical Success!';
-
-                embedColor = colours.hope || embedColor;
+                embedColor = getColours('hope');
             } else if (finalResult === 1) {
-                value += '\n\n:skull: Natural 1';
+                value += '\n\n:skull: Natural One...';
                 title = 'Critical Fail!';
-
-                embedColor = colours.fear || embedColor;
+                embedColor = getColours('fear');
             }
 
             if (bonus === 'advantage') title += ' (with Advantage)';
@@ -156,10 +152,10 @@ module.exports = {
             .setTitle(title)
             .setDescription(`${value}`)
             .setTimestamp()
-            .setFooter({ text: 'inspired by DnD' })
+            .setFooter({ text: 'inspired by TTRPGs' })
 
         logCommandExecution(interaction);
 
-        await interaction.reply({ embeds: [rolliesEmbed], flags: !show ? EPHEMERAL : 0 });
+        await interaction.reply({ embeds: [rolliesEmbed], flags: hideEmbed(!show) });
     }
 };
