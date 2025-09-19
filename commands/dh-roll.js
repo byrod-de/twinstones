@@ -1,14 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
-const colours = require('../conf/colours.json');
-const { logCommandExecution, hideEmbed } = require('../helper/misc');
-
-let embedColor = colours.default || '#8A2BE2';
-const EPHEMERAL = 1 << 6;
-
-function rollDie(sides) {
-    return Math.floor(Math.random() * sides) + 1;
-}
+const { logCommandExecution, hideEmbed, getColours, rollDie, rollDice } = require('../helper/misc');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -34,7 +26,7 @@ module.exports = {
         )
         .addStringOption(option =>
             option.setName('type')
-                .setDescription('Indicate if is is an Action roll (with Hope and Fear), or Reaction roll without (default: Action)')
+                .setDescription('Indicate if it is an Action roll (with Hope and Fear), or Reaction roll without (default: Action)')
                 .addChoices(
                     { name: 'Action', value: 'Action' },
                     { name: 'Reaction', value: 'Reaction' }
@@ -46,12 +38,14 @@ module.exports = {
         ),
 
     async execute(interaction) {
+        let embedColor = getColours('default');
+
         const modifier = interaction.options.getInteger('modifier') ?? 0;
         const bonus = interaction.options.getString('bonus') ?? 'none';
         const allyDiceCount = interaction.options.getInteger('ally_dice') ?? 0;
         const show = interaction.options.getBoolean('show') ?? true;
         const roll_type = interaction.options.getString('type') ?? 'Action';
-        const isReaction = interaction.options.getString('type') === 'Reaction' ? true : false;
+        const isReaction = roll_type === 'Reaction';
 
         const hope = rollDie(12);
         const fear = rollDie(12);
@@ -68,10 +62,10 @@ module.exports = {
             const d6 = rollDie(6);
             bonusText = `Disadvantage d6: **-${d6}**`;
             finalTotal -= d6;
-        } else if (bonus === 'ally' && allyDiceCount > 0) {
-            const rolls = Array.from({ length: allyDiceCount }, () => rollDie(6));
+        } else if (bonus === 'ally' && (allyDiceCount ?? 0) > 0) {
+            const rolls = rollDice(allyDiceCount, 6);
             const highest = Math.max(...rolls);
-            bonusText = `Ally help d6's: [${rolls.join(', ')}] > **+${highest}**`;
+            bonusText = `Ally help d6s: [${rolls.join(', ')}] > **+${highest}**`;
             finalTotal += highest;
         }
 
@@ -81,28 +75,27 @@ module.exports = {
         if (!isReaction) {
             if (isCrit) {
                 tone = ' [**Critical Success!**] :light_blue_heart: \n-# You gain 1 Hope.\n-# You can clear 1 Stress.';
-                embedColor = colours.critical; 
+                embedColor = getColours('critical');
             } else if (hope > fear) {
                 tone = ' [**With Hope**] :yellow_heart: \n-# You gain 1 Hope.';
-                embedColor = colours.hope;
+                embedColor = getColours('hope');
             } else {
                 tone = ' [**With Fear**] :purple_circle: \n-# GM gains 1 Fear.';
-                embedColor = colours.fear;
+                embedColor = getColours('fear');
             }
         } else {
             if (isCrit) {
                 tone = ' [**Critical Success!**] :light_blue_heart:'; //mention the crit, but give no in-game effect
-                embedColor = colours.critical;
+                embedColor = getColours('critical');
             } else {
                 tone = ''; //no special tone for reaction rolls otherwise
-                embedColor = colours.neutral;
+                embedColor = getColours('neutral');
             }
         }
 
-
         const embed = new EmbedBuilder()
             .setColor(embedColor)
-            .setTitle(`Two D12 Roll - ${roll_type}`)
+            .setTitle(`${roll_type} Roll - 2d12`)
             .setDescription(
                 `**Hope d12:** \`${hope.toString().padStart(2, ' ')}\` | ` +
                 `**Fear d12:** \`${fear.toString().padStart(2, ' ')}\`\n` +
@@ -113,12 +106,6 @@ module.exports = {
             )
             .setTimestamp()
             .setFooter({ text: 'inspired by Daggerheart™' });
-
-        let executionInfo = 'in a DM channel.';
-
-        if (interaction.guild) {
-            executionInfo = `in ${interaction.guild.name} [${interaction.guild.id}].`;
-        }
 
         logCommandExecution(interaction);
 

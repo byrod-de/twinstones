@@ -55,4 +55,35 @@ function hideEmbed(hidden = true) {
   return hidden ? EPHEMERAL : undefined;
 }
 
-module.exports = { printLog, logCommandExecution, hideEmbed };
+/**
+ * Retrieves a colour from the colours.json file based on the colourType parameter.
+ * If the colourType does not exist in the colours.json file, it will default to the value of 'default' or '#4682B4'.
+ * @param {string} colourType - The type of colour to retrieve
+ * @returns {string} - The selected colour
+ */
+function getColours(colourType = 'default') {
+  const colours = require('../conf/colours.json');
+  const selectedColour = colours[colourType.toLowerCase()] || colours.default || '#4682B4';
+  return selectedColour;
+}
+
+/**
+ * Simulates the roll of a die with the given number of sides.
+ * @param {number} sides - The number of sides on the die.
+ * @returns {number} - A random number between 1 and the number of sides (inclusive).
+ */
+function rollDie(sides) {
+    return Math.floor(Math.random() * sides) + 1;
+}
+
+/**
+ * Roll multiple dice of the same size.
+ * @param {number} count - Number of dice to roll
+ * @param {number} sides - Number of sides per die
+ * @returns {number[]} - Array of individual rolls
+ */
+function rollDice(count, sides) {
+  return Array.from({ length: count }, () => rollDie(sides));
+}
+
+module.exports = { printLog, logCommandExecution, hideEmbed, getColours, rollDie, rollDice };
