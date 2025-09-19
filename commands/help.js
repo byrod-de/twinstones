@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { logCommandExecution } = require('../helper/misc');
+const { logCommandExecution, hideEmbed } = require('../helper/misc');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -33,15 +33,17 @@ module.exports = {
         '- `bonus` – only for a **single** d20: `advantage` or `disadvantage`.',
         '- `modifier` – adds/subtracts a number.',
         '- `show` – set false to hide the roll.',
+        '-# Allowed dice: d2, d4, d6, d8, d10, d12, d20, d100, coin.',
         '**Examples:**',
         '- `/dice-roll dice:coin`',
-        '- `/dice-roll dice:3d6 bonus:advantage`'
+        '- `/dice-roll dice:3d6`',
+        '- `/dice-roll dice:d20 bonus:advantage`'
       ].join('\n'),
 
       'roll-any': [
         '**What it does:** Rolls any mix of dice and flat numbers with + / –.',
         '**Input:** put everything in `rollinput`, e.g. `2d6 + d8 - 2`.',
-        'Allowed dice: d2, d4, d6, d8, d10, d12, d20, d100.',
+        '-# Allowed dice: d2, d4, d6, d8, d10, d12, d20, d100.',
         '- `show` – set false to hide the roll.',
         '**Example:**',
         '- `/roll-any rollinput:2d6 + d8 - 2`'
@@ -76,6 +78,7 @@ module.exports = {
       const command = require(path.join(commandsDir, file));
       const name = command?.data?.name;
       if (!name) continue;
+      if (name === 'help') continue;
 
       // Base (short) description from builder
       const base = command?.data?.description || '';
@@ -111,6 +114,6 @@ module.exports = {
       helpEmbed.addFields({ name: ':game_die: ' + link(name), value: value || '-', inline: false });
     }
 
-    await interaction.reply({ embeds: [helpEmbed] });
+    await interaction.reply({ embeds: [helpEmbed], flags: hideEmbed(true) });
   },
 };
