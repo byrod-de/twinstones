@@ -1,8 +1,9 @@
 {
-  "default": "#1ABC9C",
+  "default": "#4682B4",
   "hope": "#FFD700",
   "fear": "#4B0082",
   "critical": "#00FFCC",
   "error": "#FF4C4C",
-  "neutral": "#1ABC9C"
+  "neutral": "#4682B4"
 }
+

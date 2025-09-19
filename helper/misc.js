@@ -44,4 +44,15 @@ function logCommandExecution(interaction) {
   printLog(`Command /${interaction.commandName} executed by ${shortUser}: ${guildenId}`);
 }
 
-module.exports = { printLog, logCommandExecution };
+const EPHEMERAL = 1 << 6;
+
+/**
+ * Returns the correct flag for an ephemeral reply.
+ * @param {boolean} [hidden=true] - true = ephemeral, false = public
+ * @returns {number|undefined} - 64 if hidden, otherwise undefined
+ */
+function hideEmbed(hidden = true) {
+  return hidden ? EPHEMERAL : undefined;
+}
+
+module.exports = { printLog, logCommandExecution, hideEmbed };
