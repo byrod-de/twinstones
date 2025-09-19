@@ -21,6 +21,10 @@ module.exports = {
                     { name: 'Disadvantage', value: 'disadvantage' },
                 )
         )
+        .addIntegerOption(option =>
+            option.setName('modifier')
+                .setDescription('(optional): Add a modifier to the total (default: 0)')
+        )
         .addBooleanOption(option =>
             option.setName('show')
                 .setRequired(false)
@@ -40,6 +44,7 @@ module.exports = {
 
         const show = interaction.options.getBoolean('show') ?? true;
         const bonus = interaction.options.getString('bonus') ?? 'none';
+        const modifier = interaction.options.getInteger('modifier') ?? 0;
 
         //tranfer coin to 1d2 for easier processing
         if (diceString === 'coin') {
@@ -78,6 +83,16 @@ module.exports = {
                 .setColor(embedColor)
                 .setTitle('Invalid dice combination')
                 .setDescription('You cannot roll multiple D20s with a bonus. Please use a single D20 and choose `advantage` or `disadvantage`.');
+            await interaction.reply({ embeds: [errorEmbed], flags: hideEmbed(true) });
+            return;
+        }
+
+        if (isNaN(modifier) || numDice <= 0) {
+            embedColor = getColours('error') || '#FF4C4C';
+            const errorEmbed = new EmbedBuilder()
+                .setColor(embedColor)
+                .setTitle('Invalid input')
+                .setDescription('Please provide a valid number of dice and a valid modifier.');
             await interaction.reply({ embeds: [errorEmbed], flags: hideEmbed(true) });
             return;
         }
@@ -147,7 +162,7 @@ module.exports = {
         }
 
 
-        const rolliesEmbed = new EmbedBuilder()
+        const diceRollEmbed = new EmbedBuilder()
             .setColor(embedColor)
             .setTitle(title)
             .setDescription(`${value}`)
@@ -156,6 +171,6 @@ module.exports = {
 
         logCommandExecution(interaction);
 
-        await interaction.reply({ embeds: [rolliesEmbed], flags: hideEmbed(!show) });
+        await interaction.reply({ embeds: [diceRollEmbed], flags: hideEmbed(!show) });
     }
 };
