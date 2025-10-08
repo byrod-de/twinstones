@@ -1,3 +1,6 @@
+#custom
+conf/emojis.json
+
 # Logs
 logs
 *.log

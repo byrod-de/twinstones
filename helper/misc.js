@@ -68,6 +68,19 @@ function getColours(colourType = 'default') {
 }
 
 /**
+ * Retrieves an emoji from the emojis.json file based on the emojiName parameter.
+ * If the emojiName does not exist in the emojis.json file, it will default to the value of 'defaultEmoji'.
+ * @param {string} emojiName - The name of the emoji to retrieve
+ * @param {string} [defaultEmoji=''] - The default emoji to return if the emojiName does not exist
+ * @returns {string} - The selected emoji
+ */
+function getEmoji(emojiName, defaultEmoji = '') {
+  const emojis = require('../conf/emojis.json');
+  if (emojis[emojiName]) return `<:${emojiName}:${emojis[emojiName]}>`;
+  return defaultEmoji;
+}
+
+/**
  * Simulates the roll of a die with the given number of sides.
  * @param {number} sides - The number of sides on the die.
  * @returns {number} - A random number between 1 and the number of sides (inclusive).
@@ -86,4 +99,4 @@ function rollDice(count, sides) {
   return Array.from({ length: count }, () => rollDie(sides));
 }
 
-module.exports = { printLog, logCommandExecution, hideEmbed, getColours, rollDie, rollDice };
+module.exports = { printLog, logCommandExecution, hideEmbed, getColours, getEmoji, rollDie, rollDice };

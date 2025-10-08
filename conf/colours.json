@@ -1,7 +1,7 @@
 {
   "default": "#4682B4",
-  "hope": "#FFD700",
-  "fear": "#4B0082",
+  "hope": "#ffd500",
+  "fear": "#4d2689",
   "critical": "#00FFCC",
   "error": "#FF4C4C",
   "neutral": "#4682B4"

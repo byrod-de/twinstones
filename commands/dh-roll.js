@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
-const { logCommandExecution, hideEmbed, getColours, rollDie, rollDice } = require('../helper/misc');
+const { logCommandExecution, hideEmbed, getColours, getEmoji, rollDie, rollDice } = require('../helper/misc');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -86,18 +86,18 @@ module.exports = {
         let tone = '';
         if (!isReaction) {
             if (isCrit) {
-                tone = ' [**Critical Success!**] :light_blue_heart: \n-# You gain 1 Hope.\n-# You can clear 1 Stress.';
+                tone = ` [**Critical Success!**] ${getEmoji('TwoD12', ':light_blue_heart:')} \n-# You gain 1 Hope.\n-# You can clear 1 Stress.`;
                 embedColor = getColours('critical');
             } else if (hope > fear) {
-                tone = ' [**With Hope**] :yellow_heart: \n-# You gain 1 Hope.';
+                tone = ` [**With Hope**] ${getEmoji('Hope', ':yellow_heart:')} \n-# You gain 1 Hope.`;
                 embedColor = getColours('hope');
             } else {
-                tone = ' [**With Fear**] :purple_circle: \n-# GM gains 1 Fear.';
+                tone = ` [**With Fear**] ${getEmoji('Fear', ':purple_circle:')} \n-# GM gains 1 Fear.`;
                 embedColor = getColours('fear');
             }
         } else {
             if (isCrit) {
-                tone = ' [**Critical Success!**] :light_blue_heart:'; //mention the crit, but give no in-game effect
+                tone = ` [**Critical Success!**] ${getEmoji('TwoD12', ':light_blue_heart:')}`; //mention the crit, but give no in-game effect
                 embedColor = getColours('critical');
             } else {
                 tone = ''; //no special tone for reaction rolls otherwise

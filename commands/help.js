@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { logCommandExecution, hideEmbed } = require('../helper/misc');
+const { logCommandExecution, hideEmbed, getEmoji } = require('../helper/misc');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -24,7 +24,7 @@ module.exports = {
         '- `d20_bonus` – `hope`, `fear`, or `none` (default: none); changes the Hope or Fear die to d20.',
         '- `show` – set false to hide the roll.',
         '**Example:**',
-        '- `/dh-roll modifier:2 bonus:advantage type:Reaction ally_dice:3`'
+        '- `/dh-roll modifier:2 bonus:advantage type:Reaction`'
       ].join('\n'),
 
       'dice-roll': [
@@ -112,7 +112,7 @@ module.exports = {
       // Append the long text (if defined for that command)
       if (longHelpText) value += `\n\n${longHelpText}\n\n`;
 
-      helpEmbed.addFields({ name: ':game_die: ' + link(name), value: value || '-', inline: false });
+      helpEmbed.addFields({ name: getEmoji('TwoD12', ':game_die:') + ' ' + link(name), value: value || '-', inline: false });
     }
 
     await interaction.reply({ embeds: [helpEmbed], flags: hideEmbed(true) });
