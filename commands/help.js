@@ -21,6 +21,7 @@ module.exports = {
         '- `bonus` – `advantage`, `disadvantage`, or `ally` (adds extra d6).',
         '- `ally_dice` – number of d6 for ally help (highest die is added; only if `bonus=ally`).',
         '- `type` – `Action` (default, applies Hope/Fear) or `Reaction` (no Hope/Fear).',
+        '- `d20_bonus` – `hope`, `fear`, or `none` (default: none); changes the Hope or Fear die to d20.',
         '- `show` – set false to hide the roll.',
         '**Example:**',
         '- `/dh-roll modifier:2 bonus:advantage type:Reaction ally_dice:3`'

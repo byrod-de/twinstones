@@ -32,6 +32,15 @@ module.exports = {
                     { name: 'Reaction', value: 'Reaction' }
                 )
         )
+        .addStringOption(option =>
+            option.setName('d20_bonus')
+                .setDescription('Add a d20 roll bonus or penalty (for either fear or hope die)')
+                .addChoices(
+                    { name: 'None', value: 'none' },
+                    { name: 'Hope Bonus', value: 'hope' },
+                    { name: 'Fear Penalty', value: 'fear' }
+                )
+        )
         .addBooleanOption(option =>
             option.setName('show')
                 .setDescription('Show response (default: true)')
@@ -45,10 +54,13 @@ module.exports = {
         const allyDiceCount = interaction.options.getInteger('ally_dice') ?? 0;
         const show = interaction.options.getBoolean('show') ?? true;
         const roll_type = interaction.options.getString('type') ?? 'Action';
+        const d20_bonus = interaction.options.getString('d20_bonus') ?? 'none';
         const isReaction = roll_type === 'Reaction';
 
-        const hope = rollDie(12);
-        const fear = rollDie(12);
+        const hopeDie = d20_bonus === 'hope' ? 20 : 12;
+        const fearDie = d20_bonus === 'fear' ? 20 : 12;
+        const hope = rollDie(hopeDie);
+        const fear = rollDie(fearDie);
         const baseTotal = hope + fear + modifier;
 
         let bonusText = '';
@@ -97,8 +109,8 @@ module.exports = {
             .setColor(embedColor)
             .setTitle(`${roll_type} Roll - 2d12`)
             .setDescription(
-                `**Hope d12:** \`${hope.toString().padStart(2, ' ')}\` | ` +
-                `**Fear d12:** \`${fear.toString().padStart(2, ' ')}\`\n` +
+                `**Hope d${hopeDie}:** \`${hope.toString().padStart(2, ' ')}\` | ` +
+                `**Fear d${fearDie}:** \`${fear.toString().padStart(2, ' ')}\`\n` +
                 (modifier ? `-# **Modifier:** ${modifier}\n` : '') +
                 (bonusText ? `${bonusText}\n` : '') +
                 `\n**Final Total:** ${finalTotal} ` +
