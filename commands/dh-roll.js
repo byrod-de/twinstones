@@ -68,52 +68,57 @@ module.exports = {
 
         if (bonus === 'advantage') {
             const d6 = rollDie(6);
-            bonusText = `Advantage d6: **+${d6}**`;
+            bonusText = `-# Advantage d6: \`+${d6}\``;
             finalTotal += d6;
         } else if (bonus === 'disadvantage') {
             const d6 = rollDie(6);
-            bonusText = `Disadvantage d6: **-${d6}**`;
+            bonusText = `-# Disadvantage d6: \`-${d6}\``;
             finalTotal -= d6;
         } else if (bonus === 'ally' && (allyDiceCount ?? 0) > 0) {
             const rolls = rollDice(allyDiceCount, 6);
             const highest = Math.max(...rolls);
-            bonusText = `Ally help d6s: [${rolls.join(', ')}] > **+${highest}**`;
+            bonusText = `-# Ally help d6s: [${rolls.join(', ')}] > \`+${highest}\``;
             finalTotal += highest;
         }
 
         const isCrit = hope === fear;
 
         let tone = '';
+        let emoji = '';
         if (!isReaction) {
             if (isCrit) {
-                tone = ` [**Critical Success!**] ${getEmoji('TwoD12', ':light_blue_heart:')} \n-# You gain 1 Hope.\n-# You can clear 1 Stress.`;
+                emoji = getEmoji('TwoD12', ':light_blue_heart:');
+                tone = `\n**Critical Success!**\n-# You gain 1 Hope. You can clear 1 Stress.`;
                 embedColor = getColours('critical');
             } else if (hope > fear) {
-                tone = ` [**With Hope**] ${getEmoji('Hope', ':yellow_heart:')} \n-# You gain 1 Hope.`;
+                emoji = getEmoji('Hope', ':yellow_heart:');
+                tone = `\n**With Hope**\n-# You gain 1 Hope.`;
                 embedColor = getColours('hope');
             } else {
-                tone = ` [**With Fear**] ${getEmoji('Fear', ':purple_circle:')} \n-# GM gains 1 Fear.`;
+                emoji = getEmoji('Fear', ':purple_heart:');
+                tone = `\n**With Fear**\n-# GM gains 1 Fear.`;
                 embedColor = getColours('fear');
             }
         } else {
             if (isCrit) {
-                tone = ` [**Critical Success!**] ${getEmoji('TwoD12', ':light_blue_heart:')}`; //mention the crit, but give no in-game effect
+                emoji = getEmoji('TwoD12', ':light_blue_heart:');
+                tone = `\n**Critical Success!** ${emoji}`; //mention the crit, but give no in-game effect
                 embedColor = getColours('critical');
             } else {
-                tone = ''; //no special tone for reaction rolls otherwise
+                tone = '';
                 embedColor = getColours('neutral');
             }
         }
 
         const embed = new EmbedBuilder()
             .setColor(embedColor)
-            .setTitle(`${roll_type} Roll - 2d12`)
+            .setTitle(`${roll_type} Roll`)
             .setDescription(
                 `**Hope d${hopeDie}:** \`${hope.toString().padStart(2, ' ')}\` | ` +
-                `**Fear d${fearDie}:** \`${fear.toString().padStart(2, ' ')}\`\n` +
-                (modifier ? `-# **Modifier:** ${modifier}\n` : '') +
-                (bonusText ? `${bonusText}\n` : '') +
-                `\n**Final Total:** ${finalTotal} ` +
+                `**Fear d${fearDie}:** \`${fear.toString().padStart(2, ' ')}\`` +
+                (modifier ? `\n-# Modifier: \`${modifier}\`` : '') +
+                (bonusText ? `\n${bonusText}` : '') +
+                `\n### **Final Total:** \`${finalTotal}\` ${emoji}` +
                 `${tone}`
             )
             .setTimestamp()
