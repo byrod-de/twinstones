@@ -24,8 +24,10 @@ for (const file of commandFiles) {
 }
 
 // --- Status JSON ---
-const statusPath = '../twinstones-web/status.json';
-
+const statusPath = process.env.WEBROOT
+  ? path.join(process.env.WEBROOT, 'status.json')
+  : path.join(__dirname, '../twinstones-web/status.json');
+  
 function updateStatus() {
 	const status = {
 		online: client.ws.status === 0, // 0 = READY
