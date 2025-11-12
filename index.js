@@ -23,9 +23,28 @@ for (const file of commandFiles) {
 	client.commands.set(command.data.name, command);
 }
 
+// --- Status JSON ---
+const statusPath = '../twinstones-web/status.json';
+
+function updateStatus() {
+	const status = {
+		online: client.ws.status === 0, // 0 = READY
+		timestamp: new Date().toISOString(),
+		servers: client.guilds.cache.size,
+	};
+	fs.writeFileSync(statusPath, JSON.stringify(status, null, 2));
+	printLog(`Status updated: ${status.online ? 'Online' : 'Offline'} | Servers: ${status.servers}`);
+}
+
 client.once(Events.ClientReady, () => {
 	const startUpTime = moment().format().replace('T', ' ');
 	printLog(`Logged in as ${client.user.tag} at ${startUpTime}`);
+
+	// Initial status update
+	updateStatus();
+
+	// Update status every 5 minutes
+	setInterval(updateStatus, 5 * 60 * 1000);
 });
 
 client.on(Events.InteractionCreate, async interaction => {
