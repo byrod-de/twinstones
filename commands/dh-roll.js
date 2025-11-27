@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 const { logCommandExecution, hideEmbed, getColours, getEmoji, rollDie, rollDice } = require('../helper/misc');
+const { writeToDB } = require('../helper/db');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -125,6 +126,14 @@ module.exports = {
             .setFooter({ text: 'inspired by Daggerheart™' });
 
         logCommandExecution(interaction);
+
+        //write to db: if fear was created, if hopw was created, if stress was cleared, if it was a crit
+        writeToDB({
+            isCrit,
+            hopeGained: !isReaction && (isCrit || hope > fear) ? 1 : 0,
+            fearGained: !isReaction && (fear > hope) ? 1 : 0,
+            stressCleared: !isReaction && isCrit ? 1 : 0
+        });
 
         await interaction.reply({ embeds: [embed], flags: hideEmbed(!show) });
     }

@@ -8,6 +8,9 @@ const path = require('node:path');
 
 require('dotenv').config();
 
+const dbConfig = require('./conf/dbConfig');
+const mysql = require('mysql2/promise');
+
 const EPHEMERAL = 1 << 6;
 
 const client = new Client({
@@ -27,6 +30,10 @@ for (const file of commandFiles) {
 const statusPath = process.env.WEBROOT
   ? path.join(process.env.WEBROOT, 'status.json')
   : path.join(__dirname, '../twinstones-web/status.json');
+
+const rollStats = process.env.WEBROOT
+  ? path.join(process.env.WEBROOT, 'rollStats.json')
+  : path.join(__dirname, '../twinstones-web/rollStats.json');
   
 function updateStatus() {
 	const status = {
@@ -35,7 +42,29 @@ function updateStatus() {
 		servers: client.guilds.cache.size,
 	};
 	fs.writeFileSync(statusPath, JSON.stringify(status, null, 2));
-	printLog(`Status updated: ${status.online ? 'Online' : 'Offline'} | Servers: ${status.servers}`);
+	//printLog(`Status updated: ${status.online ? 'Online' : 'Offline'} | Servers: ${status.servers}`);
+}
+
+function updateRollStats() {
+	mysql.createConnection(dbConfig)
+		.then(connection => {
+			const query = 'SELECT COUNT(*) AS totalRolls, SUM(isCrit) AS totalCrits, SUM(hopeGained) AS totalHope, SUM(fearGained) AS totalFear, SUM(stressCleared) AS totalStress FROM rollstats';
+			return connection.query(query)
+				.then(([rows]) => {
+					connection.end();
+					const stats = {
+						totalRolls: rows[0].totalRolls || 0,
+						totalCrits: rows[0].totalCrits || 0,
+						totalHope: rows[0].totalHope || 0,
+						totalFear: rows[0].totalFear || 0,
+						totalStress: rows[0].totalStress || 0,
+					};
+					fs.writeFileSync(rollStats, JSON.stringify(stats, null, 2));
+				});
+		})
+		.catch(error => {
+			printLog(`Error updating roll stats: ${error}`, 'error');
+		});
 }
 
 client.once(Events.ClientReady, () => {
@@ -44,9 +73,11 @@ client.once(Events.ClientReady, () => {
 
 	// Initial status update
 	updateStatus();
+	updateRollStats();
 
 	// Update status every 5 minutes
 	setInterval(updateStatus, 5 * 60 * 1000);
+	setInterval(updateRollStats, 5 * 60 * 1000);
 });
 
 client.on(Events.InteractionCreate, async interaction => {
