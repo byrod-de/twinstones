@@ -2,6 +2,7 @@
 conf/emojis.json
 conf/dbConfig.js
 status.json
+rollsStats.json
 
 # Logs
 logs
