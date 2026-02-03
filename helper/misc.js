@@ -99,4 +99,41 @@ function rollDice(count, sides) {
   return Array.from({ length: count }, () => rollDie(sides));
 }
 
-module.exports = { printLog, logCommandExecution, hideEmbed, getColours, getEmoji, rollDie, rollDice };
+/**
+ * Updates the server count on Top.gg.
+ * @param {number} serverCount - The current number of servers the bot is in.
+ * @throws {Error} - If TOPGG_TOKEN is not set.
+ * @throws {Error} - If the update fails.
+ * @returns {Promise<boolean>} - Resolves to true if the update is successful.
+ */
+async function updateTopGGServerCount(serverCount) {
+  const token = process.env.TOPGG_TOKEN;
+  const botId = process.env.TOPGG_BOT_ID;
+  if (!token) throw new Error('TOPGG_TOKEN not set');
+  if (!botId) throw new Error('TOPGG_BOT_ID not set');
+
+  const res = await fetch(
+    `https://top.gg/api/bots/${botId}/stats`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': token,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        server_count: serverCount,
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Top.gg update failed: ${res.status} ${text}`);
+  }
+
+  printLog(`Updated Top.gg server count to ${serverCount}`, 'info');
+  return true;
+}
+
+
+module.exports = { printLog, logCommandExecution, hideEmbed, getColours, getEmoji, rollDie, rollDice, updateTopGGServerCount };

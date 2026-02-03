@@ -53,7 +53,8 @@ module.exports = {
 
     const helpEmbed = new EmbedBuilder()
       .setTitle(`${botName} – Help`)
-      .setDescription('Slash Commands Overview');
+      .setDescription('Slash Commands Overview')
+      .setAuthor({ name: botName, iconURL: interaction.client.user.displayAvatarURL(), url: 'https://twinstones.link' });
 
     // Fetch both global and guild commands to ensure clickable mentions
     const globalCmds = await interaction.client.application.commands.fetch();
