@@ -118,7 +118,7 @@ client.on(Events.InteractionCreate, async interaction => {
 			await owner.send({ embeds: [embed] });
 
 			await interaction.reply({
-				content: `Thanks for your feedback! Feel free to also vote for [${botName} on Top.gg](https://top.gg/bot/${topggBotId}/vote) to support the bot.`,
+				content: `Thanks for your feedback! Feel free to also vote for [${botName} on Top.gg](<https://top.gg/bot/${topggBotId}/vote>) to support the bot.`,
 				flags: EPHEMERAL
 			});
 		}
