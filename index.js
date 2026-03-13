@@ -94,14 +94,21 @@ client.on(Events.InteractionCreate, async interaction => {
 
 	//First, react to modals
 	if (interaction.isModalSubmit()) {
-		if (interaction.customId === 'feedbackModal') {
+		if (interaction.customId.startsWith('feedbackModal')) {
 			const feedback = interaction.fields.getTextInputValue('feedbackText');
-
+			const anonymous = interaction.customId.split('-')[1] === 'true';
+			const botName = interaction.client.user.username;
 			const ownerId = process.env.OWNER_ID;
 			const topggBotId = process.env.TOPGG_BOT_ID;
+			let voteMessage = '';
+
+
+			if (topggBotId) {
+				voteMessage = `Feel free to also vote for [${botName} on Top.gg](<https://top.gg/bot/${topggBotId}/vote>) to support the bot.`;
+			}
 			const owner = await client.users.fetch(ownerId);
 
-			const botName = interaction.client.user.username;
+			
 
 			const embed = new EmbedBuilder()
 				.setTitle('📬 New Feedback')
@@ -109,16 +116,22 @@ client.on(Events.InteractionCreate, async interaction => {
 				.setAuthor({ name: botName, iconURL: interaction.client.user.displayAvatarURL(), url: 'https://twinstones.link' })
 				.setColor(getColours('default'))
 				.addFields(
-					{ name: 'From', value: `<@${interaction.user.id}>\n${interaction.user.tag} (aka ${interaction.user.username}#${interaction.user.discriminator})`, inline: true },
-					{ name: 'Server', value: interaction.guild?.name ?? 'Direct Message', inline: true }
+					{ name: 'Server', value: interaction.guild?.name ?? 'Direct Message', inline: false }
 				)
 				.setTimestamp()
-				.setFooter({ text: 'powered by Twinstones' });;
+				.setFooter({ text: 'powered by Twinstones' });
+
+			if (!anonymous) {
+				embed.addFields(
+					{ name: 'From', value: `<@${interaction.user.id}>\n${interaction.user.tag} (aka ${interaction.user.username}#${interaction.user.discriminator})`, inline: false },
+
+				);
+			}
 
 			await owner.send({ embeds: [embed] });
 
 			await interaction.reply({
-				content: `Thanks for your feedback! Feel free to also vote for [${botName} on Top.gg](<https://top.gg/bot/${topggBotId}/vote>) to support the bot.`,
+				content: `Thanks for your feedback! ${voteMessage}`,
 				flags: EPHEMERAL
 			});
 		}

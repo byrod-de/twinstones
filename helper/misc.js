@@ -136,4 +136,16 @@ async function updateTopGGServerCount(serverCount) {
 }
 
 
-module.exports = { printLog, logCommandExecution, hideEmbed, getColours, getEmoji, rollDie, rollDice, updateTopGGServerCount };
+/**
+ * Returns 'an' if the given number is 8, 18, or 11, and 'a' otherwise.
+ * @param {number} n - The number to check.
+ * @returns {string} - 'an' or 'a'.
+ */
+function aOrAn(n) {
+    const s = String(n);
+    if (s.startsWith('8')) return 'an';      // 8, 80-89, 800-899, ...
+    if (n === 11 || n === 18) return 'an';   // Ausnahmen
+    return 'a';
+}
+
+module.exports = { printLog, logCommandExecution, hideEmbed, getColours, getEmoji, rollDie, rollDice, updateTopGGServerCount, aOrAn };

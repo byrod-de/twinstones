@@ -49,6 +49,13 @@ module.exports = {
         '**Example:**',
         '- `/roll-any rollinput:2d6 + d8 - 2`'
       ].join('\n'),
+
+      'rollies': [
+        '**What it does:** Everyone rolls a d20! Highest roll wins.',
+        '**Options:**',
+        '- `minutes` – how long to wait for players to join (default: 1, max: 5).',
+        '**Example:**',
+        '- `/rollies minutes:2`'].join('\n'),
     };
 
     const helpEmbed = new EmbedBuilder()
